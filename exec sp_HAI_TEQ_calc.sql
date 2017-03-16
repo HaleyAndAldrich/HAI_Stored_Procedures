@@ -1,5 +1,7 @@
-BEGIN TRAN
 
+use equis
+
+go
 
 exec
 [rpt].[sp_HAI_TEQ_Calc]
@@ -8,7 +10,7 @@ exec
 		,0 --@ND_mult float 
 		,'wm' --@matrix varchar (20)
 		,null --@task_codes varchar (2000) 
-		,'4401742371|4401741101|4401727601' --@SDG varchar ( 2000)
+		,'4401727601' --@SDG varchar ( 2000)
 		,'ssfl_tcdd' --@TEF varchar (200)
 		,'ng/l' --@unit varchar (20)
 		,'mdl' --DL_type varchar (20)
@@ -17,5 +19,4 @@ exec
 
 
 
-ROLLBACK
 
