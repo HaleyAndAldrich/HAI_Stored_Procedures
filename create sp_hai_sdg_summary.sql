@@ -38,8 +38,8 @@ GO
 
 		select 
 		 convert(varchar, min(sample_date), 101) as sample_date
-		 ,convert(varchar,eb.edd_date, 101) as edd_load_date
-		,t.lab_sdg
+		 ,coalesce(convert(varchar,eb.edd_date, 101), '--')  as edd_load_date
+		,coalesce(t.lab_sdg, 'no data') as lab_sdg
 		,count(s.sample_id) as sample_count
 		,matrix_desc as matrix
 
