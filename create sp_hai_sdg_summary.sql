@@ -44,9 +44,9 @@ GO
 		,matrix_desc as matrix
 
 		from dt_sample s
-		inner join (select distinct facility_id, sample_id, lab_sdg from dt_test where facility_id = @facility_id)t
+		left join (select distinct facility_id, sample_id, lab_sdg from dt_test where facility_id = @facility_id)t
 		 on s.facility_id = t.facility_id and s.sample_id = t.sample_id
-		inner join st_edd_batch eb on s.ebatch = eb.ebatch
+		left join st_edd_batch eb on s.ebatch = eb.ebatch
 		inner join rt_matrix rm on s.matrix_code = rm.matrix_code
 		inner join  @tasks_table tt on coalesce(s.task_code,'none') = coalesce(tt.task_code,'none')
 		where s.facility_id = @facility_id
