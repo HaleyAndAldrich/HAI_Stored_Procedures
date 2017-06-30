@@ -11,7 +11,7 @@ exec [HAI].[sp_HAI_EQUIS_Results_Charting]
 	 null, --@task_codes varchar (1000),
 	 '1/1/1998', --@start_date datetime, --= 'jan 01 1900 12:00 AM',
 	 '7/1/2017', --@end_date datetime,  -- ='dec 31 2050 11:59 PM',
-	 null, --@analyte_groups varchar(2000),
+	 'united lax hvocs', --@analyte_groups varchar(2000),
 	 null, --@param varchar (2000),
 	 null, --@fraction varchar(20),
 	 'wg', --@matrix_codes varchar (500),
@@ -19,4 +19,5 @@ exec [HAI].[sp_HAI_EQUIS_Results_Charting]
 	 null, --@limit_type varchar (10) = 'RL',
 	 null, --@user_qual_def varchar (10) = '# Q',
 	 'n', --@show_val_yn varchar (10) = 'N',
-	 'n' --@detected_chem_only varchar (10) = 'N'
+	 'n', --@detected_chem_only varchar (10) = 'N'
+	 null  --@action levels
