@@ -1,5 +1,6 @@
 
-
+use equis
+go
 
 exec HAI.sp_HAI_RAD_DV
 153
