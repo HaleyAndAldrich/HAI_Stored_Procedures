@@ -81,6 +81,22 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		and s.sample_type_code in ('n','fd','tb','eb','fb')
 		and (s.sample_source is null or s.sample_source not like 'field')
 
+		union
+/*Samples with no sys_loc_codes*/
+		select distinct
+		'5' as [Check ID]
+		,'Samples with no sys_loc_code' as [Check Name]
+		,null as Subfacility
+		,'sys_sample_code' as [Value Type]
+		,sys_sample_code as [Value Name]
+		,case when s.sys_loc_code is null then 'sys_loc_code Missing' end as 'Error Msg'
+		from dt_sample s
+
+		where s.facility_id = @facility_id
+		and s.sample_type_code in ('n','fd','tb','eb','fb')
+		and s.sys_loc_code is null
+
+
 		order by [check id]
 
 	end
