@@ -12,7 +12,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 	declare @t table
 	([Check ID]  varchar(10)
-	,[Check Name]  varchar (50)
+	,[Check Name]  varchar (200)
 	,Subfacility  varchar (50)
 	,[Value Type]  varchar (100)
 	,[Value Name]  varchar(50)
@@ -97,7 +97,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		select distinct
 		'5' as [Check ID]
 		,'Samples with no sys_loc_code' as [Check Name]
-		,null as Subfacility
+		,'NA' as Subfacility
 		,'sys_sample_code' as [Value Type]
 		,sys_sample_code as [Value Name]
 		,case when s.sys_loc_code is null then 'sys_loc_code Missing' end as 'Error Msg'
@@ -124,9 +124,71 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		and s.sample_type_code in ('n','fd','tb','eb','fb')
 		and t.lab_name_code is null
 
+		union
+
+/*Locations without Coords*/
+		select
+		'7' as [Check ID]
+		,'Location with no coordinates'
+		,l.subfacility_code
+		,'sys_loc_code' as [Value Type]
+		,l.sys_loc_code as [Value Name]
+		,case when c.sys_loc_code is null then 'Missing Coord' else 'Has Coord' end as 'Error Msg'
+		from dt_location l
+		left join dt_coordinate c on l.facility_id = c.facility_id and l.sys_loc_code = c.sys_loc_code
+		where l.facility_id = @facility_id
+		and l.loc_type not like '%IDW%' and l.loc_type not like '%waste%' and l.loc_type not like '%QC%'
+		and l.subfacility_code in ('pge-nb','pge-ff','pge-bs','pge-ehu','pge-ehs','pge-p39','pge-p39-eb','pge-p39-wb','PGE-POTRERO','PGE-FRE1','PGE-FRE2')
+		and c.sys_loc_code is null
+		
+
 
 /*Need to add Records for Tests that passed*/
+		declare @t2 table
+		([Check ID]  varchar(10)
+		,[Check Name]  varchar (200)
+		,Subfacility  varchar (50)
+		,[Value Type]  varchar (100)
+		,[Value Name]  varchar(50)
+		,[Error Msg]  varchar (255))
 
+		insert into @t2
+		select
+		'1'
+		,'All Samples Have task_codes', '--', '--', '--', 'ok'
+		union
+		select
+		'2'
+		,'All task_codes Have permission_type_codes', '--', '--', '--', 'ok'
+		union
+		select
+		'3'
+		,'All task_permission_type_codes have review comments', '--', '--', '--', 'ok'
+		union
+		select
+		'4'
+		,'All field samples flagged as sample_source = ''field''', '--', '--', '--', 'ok'
+		union
+		select
+		'5'
+		,'All field samples Have sys_loc_codes', '--', '--', '--', 'ok'
+		union
+		select
+		'6'
+		,'All test_ids have lab_name_code', '--', '--', '--', 'ok'
+		union
+		select
+		'7'
+		,'All locations have coordinates', '--', '--', '--', 'ok'
+		
+
+		insert into @t
+		select t2.*
+		from @t2 t2
+		left join @t t1
+		on t2.[check id] = t1.[check id]
+		where  t1.[check id] is null
+		
 		select * from @t
 		order by [check id]
 
