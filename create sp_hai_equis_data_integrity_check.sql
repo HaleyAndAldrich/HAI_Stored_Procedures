@@ -10,6 +10,17 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 	as 
 	begin
 
+	declare @t table
+	([Check ID]  varchar(10)
+	,[Check Name]  varchar (50)
+	,Subfacility  varchar (50)
+	,[Value Type]  varchar (100)
+	,[Value Name]  varchar(50)
+	,[Error Msg]  varchar (255)
+	)
+
+	insert into @t
+
 /*Check that all samples have task codes*/
 		select 
 		'1' as [Check ID]
@@ -95,8 +106,28 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		where s.facility_id = @facility_id
 		and s.sample_type_code in ('n','fd','tb','eb','fb')
 		and s.sys_loc_code is null
+		
+		union
+
+/*Sample / test_id with no lab_name_code*/
+		select distinct
+		'6' as [Check ID]
+		,'test_id with no lab_name_code' as [Check Name]
+		,l.subfacility_code as Subfacility
+		,'sys_sample_code [test_id]' as [Value Type]
+		,cast(s.sys_sample_code as varchar (20)) + ' [' + cast(test_id as varchar (20)) + ']' as [Value Name]
+		,case when t.lab_name_code is null then 'lab_name_code missing' end as 'Error Msg'
+		from dt_sample s
+		inner join dt_test t on s.facility_id = t.facility_id and s.sample_id = t.sample_id
+		inner join dt_location l on s.facility_id =l.facility_id and s.sys_loc_code = l.sys_loc_code
+		where s.facility_id = @facility_id
+		and s.sample_type_code in ('n','fd','tb','eb','fb')
+		and t.lab_name_code is null
 
 
+/*Need to add Records for Tests that passed*/
+
+		select * from @t
 		order by [check id]
 
 	end
