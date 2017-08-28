@@ -141,6 +141,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		and l.subfacility_code in ('pge-nb','pge-ff','pge-bs','pge-ehu','pge-ehs','pge-p39','pge-p39-eb','pge-p39-wb','PGE-POTRERO','PGE-FRE1','PGE-FRE2')
 		and c.sys_loc_code is null
 		
+		union
 /*Monitoring Well with no Screen Interval*/
 		select
 		'8' as [Check ID]
@@ -148,7 +149,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		,l.subfacility_code
 		,'sys_loc_code' as [Value Type]
 		,l.sys_loc_code as [Value Name]
-		,case when ws.sys_loc_code is null then 'Missing Screen Inteval' else 'Has Screen Interval' end as 'Error Msg'
+		,case when ws.sys_loc_code is null then 'Missing ''Screen Inteval'' in dt_well_segment' else 'Has Screen Interval' end as 'Error Msg'
 		from dt_location l
 		left join (select facility_id, sys_loc_code from dt_well_segment ws  where ws.segment_type = 'screened interval') ws
 			on l.facility_id = ws.facility_id and l.sys_loc_code = ws.sys_loc_code
@@ -158,6 +159,24 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		and l.loc_type = 'Monitoring Well'
 		and ws.sys_loc_code is null
 
+		union
+/*Monitoring Well with TOC*/
+		select
+		'9' as [Check ID]
+		,'Monitoring Well with no TOC'
+		,l.subfacility_code
+		,'sys_loc_code' as [Value Type]
+		,l.sys_loc_code as [Value Name]
+		,case when ve.sys_loc_code is null then 'Missing TOC in dt_vertical_elevation' else 'Has TOC' end as 'Error Msg'
+		from dt_location l
+		left join (select facility_id, sys_loc_code from dt_hai_vertical_elevation ve  where ve.elev_reference_type_code = 'TOC') ve
+			on l.facility_id = ve.facility_id and l.sys_loc_code = ve.sys_loc_code
+		where l.facility_id = @facility_id
+		and l.loc_type not like '%IDW%' and l.loc_type not like '%waste%' and l.loc_type not like '%QC%'
+		and l.subfacility_code in ('pge-nb','pge-ff','pge-bs','pge-ehu','pge-ehs','pge-p39','pge-p39-eb','pge-p39-wb','PGE-POTRERO','PGE-FRE1','PGE-FRE2')
+		and l.loc_type = 'Monitoring Well'
+		and ve.sys_loc_code is null
+	
 /*Need to add Records for Tests that passed*/
 		declare @t2 table
 		([Check ID]  varchar(10)
@@ -197,8 +216,12 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		,'All locations have coordinates', '--', '--', '--', 'ok'
 		union
 		select
-		'*'
+		'8'
 		,'All Monitoring Wells have Screen Intervals', '--', '--', '--', 'ok'		
+		union
+		select
+		'9'
+		,'All Monitoring Wells have TOC', '--', '--', '--', 'ok'	
 
 		insert into @t
 		select t2.*
