@@ -23,7 +23,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Check that all samples have task codes*/
 		select 
-		'1' as [Check ID]
+		'01' as [Check ID]
 		,'Sample has task code.' as [Check Name]
 		,l.subfacility_code as Subfacility
 		,'sys_sample_code' as [Value Type]
@@ -40,7 +40,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Check task codes have a permission code*/
 		select distinct
-		'2' as [Check ID]
+		'02' as [Check ID]
 		,'Task code has permission code.' as [Check Name]
 		 ,l.subfacility_code as Subfacility
 		 ,'task_code' as [Value Type]
@@ -60,7 +60,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Check permission codes have a review comment*/
 		select distinct
-		'3' as [Check ID]
+		'03' as [Check ID]
 		,'Task Code has review comment.' as [Check Name]
 		,l.subfacility_code as Subfacility
 		 ,'task_code' as [Value Type]
@@ -78,7 +78,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Check sample source = 'Field' for field samples*/
 		select distinct
-		'4' as [Check ID]
+		'04' as [Check ID]
 		,'Field sample source = ''field'' for field samples.' as [Check Name]
 		,l.subfacility_code as Subfacility
 		,'sys_sample_code' as [Value Type]
@@ -95,7 +95,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Samples with no sys_loc_codes*/
 		select distinct
-		'5' as [Check ID]
+		'05' as [Check ID]
 		,'Samples with no sys_loc_code' as [Check Name]
 		,'NA' as Subfacility
 		,'sys_sample_code' as [Value Type]
@@ -111,7 +111,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Sample / test_id with no lab_name_code*/
 		select distinct
-		'6' as [Check ID]
+		'06' as [Check ID]
 		,'test_id with no lab_name_code' as [Check Name]
 		,l.subfacility_code as Subfacility
 		,'sys_sample_code [test_id]' as [Value Type]
@@ -128,7 +128,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Locations without Coords*/
 		select
-		'7' as [Check ID]
+		'07' as [Check ID]
 		,'Location with no coordinates'
 		,l.subfacility_code
 		,'sys_loc_code' as [Value Type]
@@ -144,7 +144,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Monitoring Well with no Screen Interval*/
 		select
-		'8' as [Check ID]
+		'08' as [Check ID]
 		,'Monitoring Well with no screen interval'
 		,l.subfacility_code
 		,'sys_loc_code' as [Value Type]
@@ -162,7 +162,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Monitoring Well with TOC*/
 		select
-		'9' as [Check ID]
+		'09' as [Check ID]
 		,'Monitoring Well with no TOC'
 		,l.subfacility_code
 		,'sys_loc_code' as [Value Type]
@@ -176,6 +176,28 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		and l.subfacility_code in ('pge-nb','pge-ff','pge-bs','pge-ehu','pge-ehs','pge-p39','pge-p39-eb','pge-p39-wb','PGE-POTRERO','PGE-FRE1','PGE-FRE2')
 		and l.loc_type = 'Monitoring Well'
 		and ve.sys_loc_code is null
+
+		union
+/*Soil or Sed samples with missing depth(s)*/
+		select
+		'10'
+		,'Soil or Sed with missing sample depth'
+		,l.subfacility_code
+		,'sys_sample_code' as [Value type]
+		,sys_sample_code as [Value name]
+		,case 
+			when s.start_depth is null and s.end_depth is null then 'missing start and end depth'
+			when s.start_depth is null and s.end_depth is not null then 'missing start depth'
+			when s.start_depth is not null and s.end_depth is null then 'missing end depth'
+		end as  'Err Msg'
+
+		from dt_sample s
+		inner join dt_location l on s.facility_id = l.facility_id and s.sys_loc_code = l.sys_loc_code
+		where s.facility_id = 47
+		and s.matrix_code in ('se','so')
+		and (s.start_depth is null or s.end_depth is null)
+		and l.loc_type not like '%idw%' and l.loc_type not like '%qc%' 
+
 	
 /*Need to add Records for Tests that passed*/
 		declare @t2 table
@@ -188,40 +210,44 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 		insert into @t2
 		select
-		'1'
+		'01'
 		,'All Samples Have task_codes', '--', '--', '--', 'ok'
 		union
 		select
-		'2'
+		'02'
 		,'All task_codes Have permission_type_codes', '--', '--', '--', 'ok'
 		union
 		select
-		'3'
+		'03'
 		,'All task_permission_type_codes have review comments', '--', '--', '--', 'ok'
 		union
 		select
-		'4'
+		'04'
 		,'All field samples flagged as sample_source = ''field''', '--', '--', '--', 'ok'
 		union
 		select
-		'5'
+		'05'
 		,'All field samples Have sys_loc_codes', '--', '--', '--', 'ok'
 		union
 		select
-		'6'
+		'06'
 		,'All test_ids have lab_name_code', '--', '--', '--', 'ok'
 		union
 		select
-		'7'
+		'07'
 		,'All locations have coordinates', '--', '--', '--', 'ok'
 		union
 		select
-		'8'
+		'08'
 		,'All Monitoring Wells have Screen Intervals', '--', '--', '--', 'ok'		
 		union
 		select
-		'9'
+		'09'
 		,'All Monitoring Wells have TOC', '--', '--', '--', 'ok'	
+		union
+		select
+		'10'
+		,'All Soil and Sed Samples have depths', '--', '--', '--', 'ok'	
 
 		insert into @t
 		select t2.*
