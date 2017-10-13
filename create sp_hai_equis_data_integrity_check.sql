@@ -198,6 +198,26 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		and (s.start_depth is null or s.end_depth is null)
 		and l.loc_type not like '%idw%' and l.loc_type not like '%qc%' 
 
+		union
+/*Validator Qualifer not like Interpreted Qualifer*/
+		select distinct
+		'11'
+		,'Interpreted Qual <> Validator Qual'
+		,'NA'
+		,'Val Qual / Interp Qual (Count)' as [Value Type]
+ 
+		,validator_qualifiers + ' / ' + interpreted_qualifiers + ' (' + cast(count(*) as varchar (10)) + ')' as [Value Name]
+		,'Interpreted Qual <> Validator Qual' as 'Err Msg'
+		from dt_result r
+		where r.facility_id = @facility_id
+		and validator_qualifiers is not null
+		and validator_qualifiers not like interpreted_qualifiers
+
+		group by 
+		 lab_qualifiers
+		,validator_qualifiers
+		,interpreted_qualifiers
+
 	
 /*Need to add Records for Tests that passed*/
 		declare @t2 table
@@ -248,6 +268,10 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		select
 		'10'
 		,'All Soil and Sed Samples have depths', '--', '--', '--', 'ok'	
+		union
+		select
+		'11'
+		,'All Val Quals = Interp Quals', '--', '--', '--', 'ok'	
 
 		insert into @t
 		select t2.*
