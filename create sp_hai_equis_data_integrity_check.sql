@@ -4,6 +4,17 @@ go
 set nocount on
 go
 
+/*Checks to add*/
+--SOIL SAMPLES ALL FRACTION = 'N'
+--Soil and Sediment with liquid units  (TCLP)
+--detect_flag = "Y" but qualifier = U or UJ or U* '%U%'
+--U's
+--validated_yn is populated
+--check if result_text and result_numeric are populated if detect_flag = 'Y'
+--check if < or > in result_text
+-- check for "E"
+--check for text in result_text
+
 alter procedure hai.sp_hai_equis_data_integrity_check (
 	@facility_id int
 	)
