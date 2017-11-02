@@ -49,47 +49,11 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 		union 
 
-/*Check task codes have a permission code*/
-		select distinct
-		'02' as [Check ID]
-		,'Task code has permission code.' as [Check Name]
-		 ,l.subfacility_code as Subfacility
-		 ,'task_code' as [Value Type]
-		,s.task_code  as [Value Name]
-		,case when permission_type_code is null then 'permission code missing' end as 'Error Msg'
 
-		from dt_sample s
-		inner join dt_location l
-		on s.facility_id = l.facility_id and s.sys_loc_code = l.sys_loc_code
-		left join dt_hai_task_permissions tp on s.facility_id = tp.facility_id and s.task_code = tp.task_code
-
-		where s.facility_id = @facility_id
-		and sample_source = 'field'
-		and permission_Type_code is null
-		and s.task_code is not null
-		union
-
-/*Check permission codes have a review comment*/
-		select distinct
-		'03' as [Check ID]
-		,'Task Code has review comment.' as [Check Name]
-		,l.subfacility_code as Subfacility
-		 ,'task_code' as [Value Type]
-		,tp.task_code  as [Value Name]
-		,case when tp.review_comment is null then 'review comment missing' end as 'Error Msg'
-		from dt_sample s
-		inner join dt_location l
-		on s.facility_id = l.facility_id and s.sys_loc_code = l.sys_loc_code
-		inner join dt_hai_task_permissions tp on s.facility_id = tp.facility_id and s.task_code = tp.task_code
-		where s.facility_id = @facility_id
-		and sample_source = 'field'
-		and review_comment is null
-
-		union
 
 /*Check sample source = 'Field' for field samples*/
 		select distinct
-		'04' as [Check ID]
+		'02' as [Check ID]
 		,'Field sample source = ''field'' for field samples.' as [Check Name]
 		,l.subfacility_code as Subfacility
 		,'sys_sample_code' as [Value Type]
@@ -106,7 +70,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Samples with no sys_loc_codes*/
 		select distinct
-		'05' as [Check ID]
+		'03' as [Check ID]
 		,'Samples with no sys_loc_code' as [Check Name]
 		,'NA' as Subfacility
 		,'sys_sample_code' as [Value Type]
@@ -122,7 +86,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Sample / test_id with no lab_name_code*/
 		select distinct
-		'06' as [Check ID]
+		'04' as [Check ID]
 		,'test_id with no lab_name_code' as [Check Name]
 		,l.subfacility_code as Subfacility
 		,'sys_sample_code [test_id]' as [Value Type]
@@ -139,7 +103,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 /*Locations without Coords*/
 		select
-		'07' as [Check ID]
+		'05' as [Check ID]
 		,'Location with no coordinates'
 		,l.subfacility_code
 		,'sys_loc_code' as [Value Type]
@@ -155,7 +119,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Monitoring Well with no Screen Interval*/
 		select
-		'08' as [Check ID]
+		'06' as [Check ID]
 		,'Monitoring Well with no screen interval'
 		,l.subfacility_code
 		,'sys_loc_code' as [Value Type]
@@ -173,7 +137,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Monitoring Well with TOC*/
 		select
-		'09' as [Check ID]
+		'07' as [Check ID]
 		,'Monitoring Well with no TOC'
 		,l.subfacility_code
 		,'sys_loc_code' as [Value Type]
@@ -191,7 +155,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Soil or Sed samples with missing depth(s)*/
 		select
-		'10'
+		'08'
 		,'Soil or Sed with missing sample depth'
 		,l.subfacility_code
 		,'sys_sample_code' as [Value type]
@@ -204,7 +168,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 
 		from dt_sample s
 		inner join dt_location l on s.facility_id = l.facility_id and s.sys_loc_code = l.sys_loc_code
-		where s.facility_id = 47
+		where s.facility_id = @facility_id
 		and s.matrix_code in ('se','so')
 		and (s.start_depth is null or s.end_depth is null)
 		and l.loc_type not like '%idw%' and l.loc_type not like '%qc%' 
@@ -212,7 +176,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 /*Validator Qualifer not like Interpreted Qualifer*/
 		select distinct
-		'11'
+		'09'
 		,'Interpreted Qual <> Validator Qual'
 		,'NA'
 		,'Val Qual / Interp Qual (Count)' as [Value Type]
@@ -246,42 +210,34 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		union
 		select
 		'02'
-		,'All task_codes Have permission_type_codes', '--', '--', '--', 'ok'
-		union
-		select
-		'03'
-		,'All task_permission_type_codes have review comments', '--', '--', '--', 'ok'
-		union
-		select
-		'04'
 		,'All field samples flagged as sample_source = ''field''', '--', '--', '--', 'ok'
 		union
 		select
-		'05'
+		'03'
 		,'All field samples Have sys_loc_codes', '--', '--', '--', 'ok'
 		union
 		select
-		'06'
+		'04'
 		,'All test_ids have lab_name_code', '--', '--', '--', 'ok'
 		union
 		select
-		'07'
+		'05'
 		,'All locations have coordinates', '--', '--', '--', 'ok'
 		union
 		select
-		'08'
+		'06'
 		,'All Monitoring Wells have Screen Intervals', '--', '--', '--', 'ok'		
 		union
 		select
-		'09'
+		'07'
 		,'All Monitoring Wells have TOC', '--', '--', '--', 'ok'	
 		union
 		select
-		'10'
+		'08'
 		,'All Soil and Sed Samples have depths', '--', '--', '--', 'ok'	
 		union
 		select
-		'11'
+		'09'
 		,'All Val Quals = Interp Quals', '--', '--', '--', 'ok'	
 
 		insert into @t
