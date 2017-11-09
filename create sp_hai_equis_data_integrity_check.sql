@@ -79,7 +79,7 @@ alter procedure hai.sp_hai_equis_data_integrity_check (
 		from dt_sample s
 
 		where s.facility_id = @facility_id
-		and s.sample_type_code in ('n','fd','tb','eb','fb')
+		and s.sample_type_code in ('n','fd')
 		and s.sys_loc_code is null
 		
 		union
