@@ -1,4 +1,5 @@
-
+use equis
+go
 
 exec 
 [rpt].[sp_HAI_TEQ_Calc_temp]
